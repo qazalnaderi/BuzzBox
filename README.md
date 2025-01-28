@@ -11,7 +11,7 @@ Poste.io serves as the core mail server infrastructure, providing:
 - Mail queue management
 
 # 🌟 Features
-## Email Management
+### Email Management
 - Send and receive emails with multiple attachments
 - Organized inbox and sent box management
 - Contact list management
