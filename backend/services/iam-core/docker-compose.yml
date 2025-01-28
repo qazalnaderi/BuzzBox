@@ -1,0 +1,179 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "65000:6379"
+    volumes:
+      - ./data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      backend:
+
+    restart: unless-stopped
+
+  postgres:
+    container_name: new_postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+    restart: unless-stopped
+    expose:
+      - 5432
+
+  pgadmin:
+    container_name: new_pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_DISABLE_CHECK_FOR_UPDATES: 'True'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - backend
+    restart: unless-stopped
+
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.insecure=true"  # Enable Traefik dashboard (optional)
+      - "--providers.docker=true"  # Enable Docker provider to listen to Docker events
+      - "--entrypoints.web.address=:8081"  # HTTP (port 80)
+      - "--entrypoints.websecure.address=:8443"  # HTTPS (port 443)
+    ports:
+      - "9000:8081"  # HTTP on port 9080
+      - "9443:8443"  # HTTPS on port 8443
+      - "9080:8080"  # Traefik Dashboard (for testing purposes)
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Traefik access to Docker events
+      - "./letsencrypt:/letsencrypt"  # Volume for certificates storage
+    networks:
+      backend:
+        aliases:
+          - 127.0.0.2
+
+  poste:
+    image: analogic/poste.io:latest
+    container_name: poste
+    ports:
+      - "110:110"
+      - "143:143"
+      - "25:25"
+      - "443:443"
+      - "465:465"
+      - "587:587"
+      - "80:80"
+      - "993:993"
+      - "995:995"
+    environment:
+      - VIRTUAL_HOST=buzzbox.com
+      - SSL_TYPE=letsencrypt
+      - DOMAIN=buzzbox.com
+      - HOSTNAME=buzzbox.com
+    volumes:
+      - poste-data:/data
+    networks:
+      backend:
+       aliases:
+          - buzzbox.com
+    restart: unless-stopped
+
+  iam-service:
+    build:
+      context: .
+      dockerfile: Dockerfile  
+    environment:
+        - DATABASE_DIALECT=postgresql+asyncpg
+        - DATABASE_HOSTNAME=new_postgres_container
+        - DATABASE_NAME=mailservice
+        - DATABASE_PASSWORD=admin
+        - DATABASE_PORT=5432
+        - DATABASE_USERNAME=postgres
+        - DEBUG_MODE=False
+        - REDIS_URL=redis  
+        - REDIS_PORT=6379
+        - SMTP_HOST=poste
+        - SMTP_PORT=587
+    depends_on:
+      - redis  
+      - postgres
+      - poste
+
+    networks:
+      backend:
+    extra_hosts:
+      - "buzzbox.com:172.26.0.6" 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.iam-service.rule=Host(`iam.localhost`)"
+      - "traefik.http.routers.iam-service.entrypoints=web"
+      - "traefik.http.services.iam-service.loadbalancer.server.port=80"
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo_container
+    ports:
+      - "27017:27017"
+    networks:
+      - backend
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+  media-service:
+    build:
+      context: ../media-service
+      dockerfile: Dockerfile
+    container_name: media_service
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017
+      - DATABASE_NAME=emailserviceMediaDB
+      - FILE_STORAGE_PATH=app/media
+      - IAM_URL=http://iam-service:80
+      - GRPC_PORT=50051
+    networks:
+      - backend
+  
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.media-service.rule=Host(`media.localhost`)"
+      - "traefik.http.routers.media-service.entrypoints=web"
+      - "traefik.http.services.media-service.loadbalancer.server.port=80"
+    
+    restart: unless-stopped
+    ports:
+      - "50051:50051" # gRPC port
+      - "4000:80"     # Add this line to map HTTP port
+    depends_on:
+      - mongo
+
+
+networks:
+  backend:
+    driver: bridge  # Use the bridge driver to enable inter-container communication
+
+volumes:
+  postgres:
+  pgadmin:
+  esdata:
+  mongo-data:
+  poste-data:
+  letsencrypt:
+    driver: local

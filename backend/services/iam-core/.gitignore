@@ -1,0 +1,31 @@
+# Ignore virtual environments
+.venv
+../../.venv
+
+# Ignore Unix socket files
+*.sock
+
+# Ignore process ID files
+*.pid
+
+# Ignore log files
+*.log
+
+# Ignore large rspamd data files
+posteio-data/var/rspamd/*.hs.unser
+posteio-data/var/rspamd/*.hs
+posteio-data/var/rspamd/*.map
+posteio-data/var/rspamd/rspamd.sock
+posteio-data/zpush/
+posteio-data/var/rspamd/rspamd.rrd
+posteio-data/var/rspamd/rspamd_dynamic
+posteio-data/var/rspamd/stats.ucl
+# Ignore environment files
+.env
+
+# Ignore other temporary data
+letsencrypt/
+postgres_data/
+../data/dump.rdb
+
+
