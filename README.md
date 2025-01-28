@@ -52,7 +52,7 @@ Poste.io serves as the core mail server infrastructure, providing:
 ## Technology Stack
 - ### Backend Framework: FastAPI
 - ### Databases:
-- PostgreSQL: Primary relational database
-- MongoDB: Document storage for email attachments and profile pictures
+     - PostgreSQL: Primary relational database
+     - MongoDB: Document storage for email attachments and profile pictures
 - ### Email Server: Poste.io
 - ### Architecture Pattern: Clean Architecture
