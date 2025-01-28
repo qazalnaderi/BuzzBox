@@ -10,15 +10,15 @@ Poste.io serves as the core mail server infrastructure, providing:
 - Domain management
 - Mail queue management
 
-## 🌟 Features
-# Email Management
+# 🌟 Features
+## Email Management
 - Send and receive emails with multiple attachments
 - Organized inbox and sent box management
 - Contact list management
 - File attachment support
 - User-friendly email composition interface
 
-# User Features
+## User Features
 - Customizable user profiles with profile pictures
 - Status indicators (e.g., "A 21 yo developer.")
 - Contact management system
@@ -26,7 +26,7 @@ Poste.io serves as the core mail server infrastructure, providing:
 - User reporting system
 - Profile information updates  
 
-#Security & Authentication
+## Security & Authentication
 - Secure password management
 
 - Password reset functionality
@@ -36,24 +36,26 @@ Poste.io serves as the core mail server infrastructure, providing:
 
 - IAM (Identity and Access Management) core service
 - Recovery email system
-# Administration
+## Administration
 
 - Admin panel with comprehensive reporting
 - User management and moderation
 - Ban/suspension system
 - Report handling system
 - 
-## 🏗️ Architecture
-# Microservices
+# 🏗️ Architecture
+## Microservices
 - IAM Service: Handles authentication and authorization
 - Email Core Service: Manages email operations
 - Media Service: Handles file and media management
 
 # Technology Stack
-- # Backend Framework:
+- ## Backend Framework:
 FastAPI
-- # Databases:
+- ## Databases:
 PostgreSQL: Primary relational database
 MongoDB: Document storage for email attachments and profile pictures
-- # Email Server: Poste.io
-- # Architecture Pattern: Clean Architecture
+- ## Email Server:
+  Poste.io
+- ## Architecture Pattern:
+  Clean Architecture
