@@ -42,7 +42,7 @@ Poste.io serves as the core mail server infrastructure, providing:
 - User management and moderation
 - Ban/suspension system
 - Report handling system
-- 
+
 # 🏗️ Architecture
 ## Microservices
 - IAM Service: Handles authentication and authorization
